@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Santa's Factory Runner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Press Start 2P', monospace;
+            overflow: hidden;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+        .game-container {
+            position: relative;
+            border: 4px solid #ff6b6b;
+            border-radius: 8px;
+            box-shadow: 0 0 30px rgba(255, 107, 107, 0.3);
+        }
+
+        #gameCanvas {
+            display: block;
+            background: linear-gradient(180deg, #87CEEB 0%, #E0F6FF 60%, #FFFFFF 100%);
+        }
+
+        .ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+
+        .score-display, .presents-display {
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-family: 'Press Start 2P', monospace;
+        }
+
+        .presents-display {
+            color: #ffd700;
+        }
+
+        .start-screen, .game-over-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-family: 'Press Start 2P', monospace;
+        }
+
+        .game-over-screen {
+            display: none;
+        }
+
+        h1 {
+            font-size: 28px;
+            color: #ff6b6b;
+            text-shadow: 3px 3px 0 #8B0000;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 18px;
+            color: #4ade80;
+            margin-bottom: 30px;
+        }
+
+        .subtitle {
+            font-size: 10px;
+            color: #ffd700;
+            margin-bottom: 40px;
+        }
+
+        .instructions {
+            font-size: 10px;
+            color: #ccc;
+            margin-bottom: 30px;
+            text-align: center;
+            line-height: 2;
+        }
+
+        .start-btn, .restart-btn, .share-btn {
+            background: linear-gradient(180deg, #ff6b6b 0%, #c0392b 100%);
+            border: none;
+            color: white;
+            padding: 15px 40px;
+            font-size: 14px;
+            font-family: 'Press Start 2P', monospace;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 10px;
+            transition: transform 0.1s;
+        }
+
+        .start-btn:hover, .restart-btn:hover, .share-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .share-btn {
+            background: linear-gradient(180deg, #1DA1F2 0%, #0d8ed9 100%);
+        }
+
+        .final-score {
+            font-size: 24px;
+            color: #ffd700;
+            margin: 20px 0;
+        }
+
+        .final-presents {
+            font-size: 14px;
+            color: #4ade80;
+            margin-bottom: 20px;
+        }
+
+        .token-info {
+            position: absolute;
+            bottom: 15px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 8px;
+            color: rgba(255,255,255,0.5);
+            font-family: 'Press Start 2P', monospace;
+        }
+
+        .high-score {
+            font-size: 10px;
+            color: #ff6b6b;
+            margin-top: 10px;
+        }
+
+        /* Pixel art character sprites via CSS */
+        .pixel-santa {
+            width: 32px;
+            height: 32px;
+            image-rendering: pixelated;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <canvas id="gameCanvas" width="800" height="400"></canvas>
+        
+        <div class="ui-overlay">
+            <div class="score-display">SCORE: <span id="score">0</span></div>
+            <div class="presents-display">$PRESENTS: <span id="presents">0</span></div>
+        </div>
+
+        <div class="start-screen" id="startScreen">
+            <h1>🎅 SANTA'S FACTORY</h1>
+            <h2>RUNNER</h2>
+            <div class="subtitle">COLLECT $PRESENTS • AVOID COAL</div>
+            <div class="instructions">
+                PRESS SPACE or TAP to JUMP<br>
+                DOUBLE JUMP for extra height<br>
+                COLLECT PRESENTS for points<br>
+                AVOID COAL or game over!
+            </div>
+            <button class="start-btn" onclick="startGame()">START RUN</button>
+            <div class="high-score">HIGH SCORE: <span id="highScoreDisplay">0</span></div>
+            <div class="token-info">$PRESENTS on Solana • CA: COMING SOON</div>
+        </div>
+
+        <div class="game-over-screen" id="gameOverScreen">
+            <h1>GAME OVER</h1>
+            <div class="final-score">SCORE: <span id="finalScore">0</span></div>
+            <div class="final-presents">$PRESENTS EARNED: <span id="finalPresents">0</span></div>
+            <div class="high-score">HIGH SCORE: <span id="finalHighScore">0</span></div>
+            <button class="restart-btn" onclick="startGame()">PLAY AGAIN</button>
+            <button class="share-btn" onclick="shareScore()">SHARE ON X</button>
+            <div class="token-info">$PRESENTS on Solana • CA: COMING SOON</div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Game state
+        let gameRunning = false;
+        let score = 0;
+        let presents = 0;
+        let highScore = localStorage.getItem('santaRunnerHighScore') || 0;
+        let gameSpeed = 5;
+        let frameCount = 0;
+
+        // Update high score display
+        document.getElementById('highScoreDisplay').textContent = highScore;
+
+        // Player (Santa/Elf)
+        const player = {
+            x: 100,
+            y: 300,
+            width: 40,
+            height: 50,
+            velocityY: 0,
+            jumping: false,
+            doubleJump: false,
+            grounded: true
+        };
+
+        const GRAVITY = 0.6;
+        const JUMP_FORCE = -14;
+        const GROUND_Y = 320;
+
+        // Obstacles and collectibles
+        let obstacles = [];
+        let collectibles = [];
+        let particles = [];
+
+        // Background elements
+        let clouds = [];
+        let mountains = [];
+        let trees = [];
+        let snowflakes = [];
+
+        // Initialize background
+        function initBackground() {
+            // Clouds
+            for (let i = 0; i < 5; i++) {
+                clouds.push({
+                    x: Math.random() * canvas.width,
+                    y: 30 + Math.random() * 80,
+                    width: 60 + Math.random() * 40,
+                    speed: 0.5 + Math.random() * 0.5
+                });
+            }
+
+            // Mountains
+            for (let i = 0; i < 3; i++) {
+                mountains.push({
+                    x: i * 350,
+                    height: 100 + Math.random() * 50
+                });
+            }
+
+            // Trees
+            for (let i = 0; i < 8; i++) {
+                trees.push({
+                    x: i * 120 + Math.random() * 50,
+                    height: 60 + Math.random() * 40,
+                    type: Math.floor(Math.random() * 3)
+                });
+            }
+
+            // Snowflakes
+            for (let i = 0; i < 50; i++) {
+                snowflakes.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: 1 + Math.random() * 3,
+                    speed: 1 + Math.random() * 2
+                });
+            }
+        }
+
+        // Draw pixel art style elements
+        function drawPixelRect(x, y, w, h, color) {
+            ctx.fillStyle = color;
+            ctx.fillRect(Math.floor(x), Math.floor(y), w, h);
+        }
+
+        function drawCloud(cloud) {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.beginPath();
+            ctx.arc(cloud.x, cloud.y, 20, 0, Math.PI * 2);
+            ctx.arc(cloud.x + 25, cloud.y - 10, 25, 0, Math.PI * 2);
+            ctx.arc(cloud.x + 50, cloud.y, 20, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function drawMountain(m) {
+            ctx.fillStyle = '#a8d5e5';
+            ctx.beginPath();
+            ctx.moveTo(m.x, GROUND_Y);
+            ctx.lineTo(m.x + 150, GROUND_Y - m.height);
+            ctx.lineTo(m.x + 300, GROUND_Y);
+            ctx.fill();
+            
+            // Snow cap
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.moveTo(m.x + 120, GROUND_Y - m.height + 30);
+            ctx.lineTo(m.x + 150, GROUND_Y - m.height);
+            ctx.lineTo(m.x + 180, GROUND_Y - m.height + 30);
+            ctx.fill();
+        }
+
+        function drawTree(t) {
+            // Trunk
+            drawPixelRect(t.x + 15, GROUND_Y - 20, 10, 20, '#8B4513');
+            
+            // Tree layers (pixel style)
+            const layers = 3;
+            for (let i = 0; i < layers; i++) {
+                const layerWidth = 40 - i * 8;
+                const layerY = GROUND_Y - 30 - i * 20;
+                ctx.fillStyle = '#228B22';
+                ctx.beginPath();
+                ctx.moveTo(t.x + 20, layerY - 25);
+                ctx.lineTo(t.x + 20 - layerWidth/2, layerY);
+                ctx.lineTo(t.x + 20 + layerWidth/2, layerY);
+                ctx.fill();
+                
+                // Snow on branches
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.moveTo(t.x + 20, layerY - 25);
+                ctx.lineTo(t.x + 20 - layerWidth/3, layerY - 15);
+                ctx.lineTo(t.x + 20 + layerWidth/3, layerY - 15);
+                ctx.fill();
+            }
+        }
+
+        function drawSnowflake(s) {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function drawGround() {
+            // Snow ground
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, GROUND_Y, canvas.width, canvas.height - GROUND_Y);
+            
+            // Ground line
+            ctx.fillStyle = '#e0e0e0';
+            ctx.fillRect(0, GROUND_Y, canvas.width, 3);
+            
+            // Snow details
+            for (let i = 0; i < canvas.width; i += 30) {
+                ctx.fillStyle = '#f0f0f0';
+                ctx.beginPath();
+                ctx.arc(i + frameCount % 30, GROUND_Y + 20, 15, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function drawPlayer() {
+            const p = player;
+            const bobOffset = Math.sin(frameCount * 0.2) * 2;
+            
+            // Body (red suit)
+            drawPixelRect(p.x + 8, p.y + 15 + bobOffset, 24, 25, '#ff0000');
+            
+            // Belt
+            drawPixelRect(p.x + 8, p.y + 30 + bobOffset, 24, 5, '#000');
+            drawPixelRect(p.x + 16, p.y + 29 + bobOffset, 8, 7, '#ffd700');
+            
+            // Head
+            drawPixelRect(p.x + 10, p.y + bobOffset, 20, 18, '#fdbf6f');
+            
+            // Hat
+            drawPixelRect(p.x + 8, p.y - 10 + bobOffset, 24, 12, '#ff0000');
+            drawPixelRect(p.x + 6, p.y + bobOffset, 28, 5, '#fff');
+            drawPixelRect(p.x + 28, p.y - 15 + bobOffset, 8, 8, '#fff');
+            
+            // Beard
+            drawPixelRect(p.x + 10, p.y + 12 + bobOffset, 20, 8, '#fff');
+            
+            // Eyes
+            drawPixelRect(p.x + 14, p.y + 5 + bobOffset, 4, 4, '#000');
+            drawPixelRect(p.x + 22, p.y + 5 + bobOffset, 4, 4, '#000');
+            
+            // Legs (animated)
+            const legOffset = Math.sin(frameCount * 0.3) * 3;
+            drawPixelRect(p.x + 10, p.y + 40 + bobOffset, 8, 12, '#000');
+            drawPixelRect(p.x + 22, p.y + 40 + bobOffset + legOffset, 8, 12, '#000');
+            
+            // Boots
+            drawPixelRect(p.x + 8, p.y + 48 + bobOffset, 12, 6, '#8B0000');
+            drawPixelRect(p.x + 20, p.y + 48 + bobOffset + legOffset, 12, 6, '#8B0000');
+        }
+
+        function drawObstacle(obs) {
+            if (obs.type === 'coal') {
+                // Coal lump (black rock)
+                ctx.fillStyle = '#1a1a1a';
+                ctx.beginPath();
+                ctx.moveTo(obs.x + 15, obs.y);
+                ctx.lineTo(obs.x + 30, obs.y + 10);
+                ctx.lineTo(obs.x + 28, obs.y + 25);
+                ctx.lineTo(obs.x + 5, obs.y + 25);
+                ctx.lineTo(obs.x, obs.y + 12);
+                ctx.fill();
+                
+                // Shine
+                ctx.fillStyle = '#333';
+                ctx.beginPath();
+                ctx.arc(obs.x + 10, obs.y + 8, 4, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Angry face
+                ctx.fillStyle = '#ff0000';
+                ctx.fillRect(obs.x + 8, obs.y + 12, 3, 3);
+                ctx.fillRect(obs.x + 18, obs.y + 12, 3, 3);
+            } else if (obs.type === 'snowman') {
+                // Bottom
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(obs.x + 20, obs.y + 35, 20, 0, Math.PI * 2);
+                ctx.fill();
+                // Middle
+                ctx.beginPath();
+                ctx.arc(obs.x + 20, obs.y + 10, 15, 0, Math.PI * 2);
+                ctx.fill();
+                // Head
+                ctx.beginPath();
+                ctx.arc(obs.x + 20, obs.y - 12, 10, 0, Math.PI * 2);
+                ctx.fill();
+                // Eyes
+                ctx.fillStyle = '#000';
+                ctx.beginPath();
+                ctx.arc(obs.x + 16, obs.y - 14, 2, 0, Math.PI * 2);
+                ctx.arc(obs.x + 24, obs.y - 14, 2, 0, Math.PI * 2);
+                ctx.fill();
+                // Carrot nose
+                ctx.fillStyle = '#ff6600';
+                ctx.beginPath();
+                ctx.moveTo(obs.x + 20, obs.y - 12);
+                ctx.lineTo(obs.x + 30, obs.y - 10);
+                ctx.lineTo(obs.x + 20, obs.y - 8);
+                ctx.fill();
+            }
+        }
+
+        function drawCollectible(col) {
+            const bounce = Math.sin(frameCount * 0.1 + col.x) * 3;
+            
+            if (col.type === 'present') {
+                // Present box
+                ctx.fillStyle = col.color || '#ff0000';
+                drawPixelRect(col.x, col.y + bounce, 25, 25, col.color || '#ff0000');
+                // Ribbon vertical
+                ctx.fillStyle = '#ffd700';
+                drawPixelRect(col.x + 10, col.y + bounce, 5, 25, '#ffd700');
+                // Ribbon horizontal
+                drawPixelRect(col.x, col.y + 10 + bounce, 25, 5, '#ffd700');
+                // Bow
+                drawPixelRect(col.x + 8, col.y - 5 + bounce, 9, 8, '#ffd700');
+            } else if (col.type === 'cookie') {
+                // Cookie (speed boost)
+                ctx.fillStyle = '#d2691e';
+                ctx.beginPath();
+                ctx.arc(col.x + 12, col.y + 12 + bounce, 12, 0, Math.PI * 2);
+                ctx.fill();
+                // Chips
+                ctx.fillStyle = '#4a2c0a';
+                ctx.beginPath();
+                ctx.arc(col.x + 8, col.y + 10 + bounce, 3, 0, Math.PI * 2);
+                ctx.arc(col.x + 16, col.y + 14 + bounce, 3, 0, Math.PI * 2);
+                ctx.arc(col.x + 12, col.y + 8 + bounce, 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function drawParticle(p) {
+            ctx.globalAlpha = p.life;
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1;
+        }
+
+        function createParticles(x, y, color, count) {
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 8,
+                    vy: (Math.random() - 0.5) * 8,
+                    size: 2 + Math.random() * 4,
+                    color: color,
+                    life: 1
+                });
+            }
+        }
+
+        function spawnObstacle() {
+            const types = ['coal', 'coal', 'coal', 'snowman'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            
+            obstacles.push({
+                x: canvas.width + 50,
+                y: type === 'snowman' ? GROUND_Y - 55 : GROUND_Y - 25,
+                width: type === 'snowman' ? 40 : 30,
+                height: type === 'snowman' ? 55 : 25,
+                type: type
+            });
+        }
+
+        function spawnCollectible() {
+            const types = ['present', 'present', 'present', 'cookie'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            const colors = ['#ff0000', '#00ff00', '#0066ff', '#ff00ff', '#ffff00'];
+            
+            collectibles.push({
+                x: canvas.width + 50,
+                y: GROUND_Y - 60 - Math.random() * 80,
+                width: 25,
+                height: 25,
+                type: type,
+                color: colors[Math.floor(Math.random() * colors.length)]
+            });
+        }
+
+        function updateBackground() {
+            // Update clouds
+            clouds.forEach(c => {
+                c.x -= c.speed;
+                if (c.x < -100) c.x = canvas.width + 50;
+            });
+
+            // Update trees (parallax)
+            trees.forEach(t => {
+                t.x -= gameSpeed * 0.3;
+                if (t.x < -50) t.x = canvas.width + 50;
+            });
+
+            // Update snowflakes
+            snowflakes.forEach(s => {
+                s.y += s.speed;
+                s.x -= gameSpeed * 0.5;
+                if (s.y > canvas.height) s.y = 0;
+                if (s.x < 0) s.x = canvas.width;
+            });
+        }
+
+        function update() {
+            if (!gameRunning) return;
+
+            frameCount++;
+
+            // Gravity
+            player.velocityY += GRAVITY;
+            player.y += player.velocityY;
+
+            // Ground collision
+            if (player.y >= GROUND_Y - player.height) {
+                player.y = GROUND_Y - player.height;
+                player.velocityY = 0;
+                player.grounded = true;
+                player.jumping = false;
+                player.doubleJump = false;
+            } else {
+                player.grounded = false;
+            }
+
+            // Spawn obstacles
+            if (frameCount % Math.floor(120 / (gameSpeed / 5)) === 0) {
+                if (Math.random() > 0.3) spawnObstacle();
+            }
+
+            // Spawn collectibles
+            if (frameCount % Math.floor(80 / (gameSpeed / 5)) === 0) {
+                spawnCollectible();
+            }
+
+            // Update obstacles
+            obstacles.forEach((obs, i) => {
+                obs.x -= gameSpeed;
+                
+                // Collision detection
+                if (
+                    player.x < obs.x + obs.width - 10 &&
+                    player.x + player.width > obs.x + 10 &&
+                    player.y < obs.y + obs.height &&
+                    player.y + player.height > obs.y
+                ) {
+                    if (obs.type === 'coal') {
+                        gameOver();
+                    }
+                }
+            });
+
+            // Remove off-screen obstacles
+            obstacles = obstacles.filter(obs => obs.x > -50);
+
+            // Update collectibles
+            collectibles.forEach((col, i) => {
+                col.x -= gameSpeed;
+                
+                // Collision detection
+                if (
+                    player.x < col.x + col.width &&
+                    player.x + player.width > col.x &&
+                    player.y < col.y + col.height &&
+                    player.y + player.height > col.y
+                ) {
+                    if (col.type === 'present') {
+                        score += 100;
+                        presents++;
+                        createParticles(col.x + 12, col.y + 12, '#ffd700', 10);
+                    } else if (col.type === 'cookie') {
+                        score += 50;
+                        gameSpeed = Math.min(gameSpeed + 0.5, 15);
+                        createParticles(col.x + 12, col.y + 12, '#d2691e', 8);
+                    }
+                    collectibles.splice(i, 1);
+                }
+            });
+
+            // Remove off-screen collectibles
+            collectibles = collectibles.filter(col => col.x > -30);
+
+            // Update particles
+            particles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= 0.02;
+            });
+            particles = particles.filter(p => p.life > 0);
+
+            // Increase difficulty over time
+            if (frameCount % 500 === 0) {
+                gameSpeed = Math.min(gameSpeed + 0.3, 15);
+            }
+
+            // Update score display
+            score += 1;
+            document.getElementById('score').textContent = score;
+            document.getElementById('presents').textContent = presents;
+
+            updateBackground();
+        }
+
+        function draw() {
+            // Clear canvas
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw gradient sky
+            const gradient = ctx.createLinearGradient(0, 0, 0, GROUND_Y);
+            gradient.addColorStop(0, '#4a90c2');
+            gradient.addColorStop(0.5, '#87CEEB');
+            gradient.addColorStop(1, '#b8d4e8');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, GROUND_Y);
+
+            // Draw background layers
+            mountains.forEach(drawMountain);
+            clouds.forEach(drawCloud);
+            trees.forEach(drawTree);
+            snowflakes.forEach(drawSnowflake);
+            
+            // Draw ground
+            drawGround();
+
+            // Draw collectibles
+            collectibles.forEach(drawCollectible);
+
+            // Draw obstacles
+            obstacles.forEach(drawObstacle);
+
+            // Draw player
+            drawPlayer();
+
+            // Draw particles
+            particles.forEach(drawParticle);
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function jump() {
+            if (!gameRunning) return;
+            
+            if (player.grounded) {
+                player.velocityY = JUMP_FORCE;
+                player.jumping = true;
+                player.grounded = false;
+            } else if (!player.doubleJump) {
+                player.velocityY = JUMP_FORCE * 0.85;
+                player.doubleJump = true;
+            }
+        }
+
+        function startGame() {
+            gameRunning = true;
+            score = 0;
+            presents = 0;
+            gameSpeed = 5;
+            frameCount = 0;
+            obstacles = [];
+            collectibles = [];
+            particles = [];
+            
+            player.y = GROUND_Y - player.height;
+            player.velocityY = 0;
+            player.grounded = true;
+            player.jumping = false;
+            player.doubleJump = false;
+
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('gameOverScreen').style.display = 'none';
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('santaRunnerHighScore', highScore);
+            }
+
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('finalPresents').textContent = presents;
+            document.getElementById('finalHighScore').textContent = highScore;
+            document.getElementById('highScoreDisplay').textContent = highScore;
+            document.getElementById('gameOverScreen').style.display = 'flex';
+        }
+
+        function shareScore() {
+            const text = `🎅 I just scored ${score} points and earned ${presents} $PRESENTS in Santa's Factory Runner!\n\nCan you beat my score?\n\n🎄 Play now: [LINK]\n\n$PRESENTS`;
+            const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+        }
+
+        // Event listeners
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (!gameRunning && document.getElementById('startScreen').style.display !== 'none') {
+                    startGame();
+                } else {
+                    jump();
+                }
+            }
+        });
+
+        canvas.addEventListener('click', () => {
+            if (gameRunning) jump();
+        });
+
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (gameRunning) jump();
+        });
+
+        // Initialize
+        initBackground();
+        gameLoop();
+    </script>
+</body>
+</html>
