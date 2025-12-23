@@ -1,0 +1,1857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Santa's Factory | Collect $PRESENTS on Solana</title>
+    <meta name="description" content="Santa's Factory - A festive DeFi game on Solana. Play the runner game, collect $PRESENTS, avoid $COAL. Christmas comes but once a year.">
+    <meta property="og:title" content="Santa's Factory | $PRESENTS on Solana">
+    <meta property="og:description" content="Play. Collect. Hold. Christmas magic on Solana.">
+    <meta property="og:image" content="/images/site-preview.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --christmas-red: #C41E3A;
+            --christmas-red-dark: #8B0000;
+            --christmas-green: #228B22;
+            --christmas-green-dark: #006400;
+            --gold: #FFD700;
+            --snow-white: #FFFAFA;
+            --ice-blue: #87CEEB;
+            --ice-blue-light: #E0F6FF;
+            --coal-black: #1a1a1a;
+            --pixel-shadow: 4px 4px 0px rgba(0,0,0,0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Press Start 2P', monospace;
+            background: linear-gradient(180deg, #1a1a2e 0%, #0f3460 50%, #16213e 100%);
+            color: var(--snow-white);
+            overflow-x: hidden;
+            line-height: 1.8;
+        }
+
+        /* Snowfall Animation */
+        .snowflakes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+            overflow: hidden;
+        }
+
+        .snowflake {
+            position: absolute;
+            top: -10px;
+            color: white;
+            font-size: 1em;
+            text-shadow: 0 0 5px rgba(255,255,255,0.5);
+            animation: fall linear infinite;
+            opacity: 0.8;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+            }
+        }
+
+        /* Icicle Border */
+        .icicle-border {
+            background: linear-gradient(180deg, #a8d5e5 0%, #e0f6ff 50%, transparent 100%);
+            height: 60px;
+            width: 100%;
+            position: relative;
+        }
+
+        .icicle-border::after {
+            content: '';
+            position: absolute;
+            bottom: -30px;
+            left: 0;
+            right: 0;
+            height: 30px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 30'%3E%3Cpath d='M0,0 L5,0 L5,20 L2.5,30 L0,20 Z M10,0 L18,0 L18,15 L14,25 L10,15 Z M20,0 L25,0 L25,22 L22.5,30 L20,22 Z M30,0 L40,0 L40,18 L35,28 L30,18 Z M45,0 L50,0 L50,20 L47.5,28 L45,20 Z M55,0 L62,0 L62,16 L58.5,26 L55,16 Z M67,0 L72,0 L72,22 L69.5,30 L67,22 Z M77,0 L85,0 L85,14 L81,24 L77,14 Z M90,0 L95,0 L95,18 L92.5,26 L90,18 Z M97,0 L100,0 L100,12 L98.5,20 L97,12 Z' fill='%23e0f6ff'/%3E%3C/svg%3E") repeat-x;
+            background-size: 100px 30px;
+        }
+
+        /* Navigation */
+        nav {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 3px solid var(--christmas-red);
+        }
+
+        .nav-logo {
+            font-size: 14px;
+            color: var(--christmas-red);
+            text-shadow: 2px 2px 0 var(--christmas-red-dark);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 25px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--snow-white);
+            text-decoration: none;
+            font-size: 10px;
+            transition: color 0.3s;
+            padding: 8px 12px;
+        }
+
+        .nav-links a:hover {
+            color: var(--gold);
+        }
+
+        .nav-socials {
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-socials a {
+            font-size: 10px;
+            color: var(--snow-white);
+            text-decoration: none;
+            padding: 8px 15px;
+            border: 2px solid var(--snow-white);
+            transition: all 0.3s;
+        }
+
+        .nav-socials a:hover {
+            background: var(--christmas-red);
+            border-color: var(--christmas-red);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px 20px;
+            background:
+                linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.3) 100%),
+                url("/images/winter-bg.png");
+            background-size: 100% 100%;
+            background-position: center;
+            background-repeat: no-repeat;
+            position: relative;
+            margin-left: calc(-50vw + 50%);
+            margin-right: calc(-50vw + 50%);
+        }
+
+        .hero-title {
+            font-size: clamp(32px, 8vw, 72px);
+            color: var(--christmas-red);
+            text-shadow: 
+                4px 4px 0 var(--christmas-red-dark),
+                8px 8px 0 rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .hero-subtitle {
+            font-size: clamp(18px, 4vw, 36px);
+            color: var(--christmas-green);
+            text-shadow: 2px 2px 0 var(--christmas-green-dark);
+            margin-bottom: 30px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .hero-tagline {
+            font-size: clamp(10px, 2vw, 14px);
+            color: var(--gold);
+            margin-bottom: 40px;
+            letter-spacing: 2px;
+        }
+
+        /* Countdown Timer */
+        .countdown-container {
+            background: rgba(0, 0, 0, 0.7);
+            border: 4px solid var(--christmas-red);
+            border-radius: 10px;
+            padding: 25px 40px;
+            margin-bottom: 40px;
+            box-shadow: var(--pixel-shadow);
+        }
+
+        .countdown-label {
+            font-size: 10px;
+            color: var(--snow-white);
+            margin-bottom: 15px;
+        }
+
+        .countdown {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .countdown-item {
+            text-align: center;
+        }
+
+        .countdown-value {
+            font-size: clamp(24px, 5vw, 48px);
+            color: var(--gold);
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.5);
+        }
+
+        .countdown-unit {
+            font-size: 8px;
+            color: var(--snow-white);
+            margin-top: 5px;
+        }
+
+        /* CTA Buttons */
+        .cta-buttons {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 40px;
+        }
+
+        .btn {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 12px;
+            padding: 18px 35px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: var(--pixel-shadow);
+        }
+
+        .btn-primary {
+            background: linear-gradient(180deg, var(--christmas-red) 0%, var(--christmas-red-dark) 100%);
+            color: white;
+            border: 3px solid var(--christmas-red-dark);
+        }
+
+        .btn-primary:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px rgba(0,0,0,0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(180deg, var(--christmas-green) 0%, var(--christmas-green-dark) 100%);
+            color: white;
+            border: 3px solid var(--christmas-green-dark);
+        }
+
+        .btn-secondary:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px rgba(0,0,0,0.3);
+        }
+
+        .btn-gold {
+            background: linear-gradient(180deg, var(--gold) 0%, #DAA520 100%);
+            color: var(--coal-black);
+            border: 3px solid #DAA520;
+        }
+
+        /* Token Info Bar */
+        .token-bar {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            border-top: 2px solid var(--gold);
+            border-bottom: 2px solid var(--gold);
+        }
+
+        .token-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 9px;
+        }
+
+        .token-label {
+            color: #888;
+        }
+
+        .token-value {
+            color: var(--gold);
+        }
+
+        .ca-copy {
+            background: var(--christmas-green);
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 7px;
+            cursor: pointer;
+        }
+
+        /* Section Styles */
+        section {
+            padding: 80px 20px;
+            width: 100%;
+            max-width: none;
+        }
+
+        .section-title {
+            font-size: clamp(18px, 4vw, 28px);
+            color: var(--christmas-red);
+            text-align: center;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 0 var(--christmas-red-dark);
+        }
+
+        .section-subtitle {
+            font-size: 10px;
+            color: var(--ice-blue);
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        /* Game Section */
+        .game-section {
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+            margin-right: calc(-50vw + 50%);
+            background:
+                linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.5) 100%),
+                url("/images/factory-bg.png");
+            background-size: 100% 100%;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .game-container {
+            max-width: 850px;
+            margin: 0 auto;
+            border: 4px solid var(--christmas-red);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(196, 30, 58, 0.3);
+        }
+
+        .game-container iframe {
+            width: 100%;
+            height: 500px;
+            border: none;
+        }
+
+        .game-instructions {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+            border-radius: 10px;
+        }
+
+        .instruction-item {
+            text-align: center;
+            padding: 15px;
+        }
+
+        .instruction-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .instruction-text {
+            font-size: 9px;
+            color: var(--snow-white);
+            line-height: 1.6;
+        }
+
+        /* About Section */
+        #about {
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+            margin-right: calc(-50vw + 50%);
+            background:
+                linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.6) 100%),
+                url("/images/workshop-bg.png");
+            background-size: 100% 100%;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        /* How It Works */
+        .how-it-works {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .step-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 3px solid var(--christmas-green);
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .step-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .step-number {
+            font-size: 36px;
+            color: var(--gold);
+            margin-bottom: 15px;
+        }
+
+        .step-title {
+            font-size: 12px;
+            color: var(--christmas-red);
+            margin-bottom: 15px;
+        }
+
+        .step-desc {
+            font-size: 9px;
+            color: var(--snow-white);
+            line-height: 1.8;
+        }
+
+        /* Tokenomics */
+        .tokenomics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .token-card {
+            background: linear-gradient(135deg, rgba(196, 30, 58, 0.2) 0%, rgba(0, 0, 0, 0.5) 100%);
+            border: 2px solid var(--christmas-red);
+            border-radius: 10px;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .token-card-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+
+        .token-card-title {
+            font-size: 14px;
+            color: var(--gold);
+            margin-bottom: 10px;
+        }
+
+        .token-card-desc {
+            font-size: 8px;
+            color: var(--snow-white);
+            line-height: 1.6;
+        }
+
+        /* Naughty/Nice Section */
+        .naughty-nice {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .naughty-nice {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .list-card {
+            border-radius: 10px;
+            padding: 30px;
+        }
+
+        .nice-card {
+            background: linear-gradient(135deg, rgba(34, 139, 34, 0.3) 0%, rgba(0, 100, 0, 0.2) 100%);
+            border: 3px solid var(--christmas-green);
+        }
+
+        .naughty-card {
+            background: linear-gradient(135deg, rgba(196, 30, 58, 0.3) 0%, rgba(139, 0, 0, 0.2) 100%);
+            border: 3px solid var(--christmas-red);
+        }
+
+        .list-title {
+            font-size: 16px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nice-card .list-title {
+            color: var(--christmas-green);
+        }
+
+        .naughty-card .list-title {
+            color: var(--christmas-red);
+        }
+
+        .list-items {
+            list-style: none;
+        }
+
+        .list-items li {
+            font-size: 9px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .list-items li:last-child {
+            border-bottom: none;
+        }
+
+        /* Leaderboard */
+        .leaderboard {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.7);
+            border: 3px solid var(--gold);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .leaderboard-header {
+            background: var(--gold);
+            color: var(--coal-black);
+            padding: 15px;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .leaderboard-row {
+            display: grid;
+            grid-template-columns: 60px 1fr 120px;
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 10px;
+            align-items: center;
+        }
+
+        .leaderboard-row:nth-child(2) {
+            background: rgba(255, 215, 0, 0.2);
+        }
+
+        .leaderboard-row:nth-child(3) {
+            background: rgba(192, 192, 192, 0.1);
+        }
+
+        .leaderboard-row:nth-child(4) {
+            background: rgba(205, 127, 50, 0.1);
+        }
+
+        .rank {
+            color: var(--gold);
+        }
+
+        .wallet {
+            color: var(--snow-white);
+        }
+
+        .score {
+            color: var(--christmas-green);
+            text-align: right;
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 100%;
+            background: var(--christmas-red);
+        }
+
+        @media (max-width: 768px) {
+            .timeline::before {
+                left: 20px;
+            }
+        }
+
+        .timeline-item {
+            display: flex;
+            justify-content: flex-end;
+            padding-right: 50%;
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .timeline-item:nth-child(even) {
+            justify-content: flex-start;
+            padding-right: 0;
+            padding-left: 50%;
+        }
+
+        @media (max-width: 768px) {
+            .timeline-item,
+            .timeline-item:nth-child(even) {
+                padding-left: 50px;
+                padding-right: 0;
+                justify-content: flex-start;
+            }
+        }
+
+        .timeline-content {
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid var(--christmas-green);
+            border-radius: 10px;
+            padding: 20px;
+            max-width: 350px;
+            position: relative;
+        }
+
+        .timeline-date {
+            font-size: 10px;
+            color: var(--gold);
+            margin-bottom: 10px;
+        }
+
+        .timeline-title {
+            font-size: 11px;
+            color: var(--christmas-red);
+            margin-bottom: 10px;
+        }
+
+        .timeline-desc {
+            font-size: 8px;
+            color: var(--snow-white);
+            line-height: 1.6;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: var(--christmas-red);
+            border: 3px solid var(--gold);
+            border-radius: 50%;
+            top: 20px;
+        }
+
+        .timeline-item:nth-child(odd) .timeline-dot {
+            right: -60px;
+        }
+
+        .timeline-item:nth-child(even) .timeline-dot {
+            left: -60px;
+        }
+
+        @media (max-width: 768px) {
+            .timeline-item:nth-child(odd) .timeline-dot,
+            .timeline-item:nth-child(even) .timeline-dot {
+                left: -40px;
+                right: auto;
+            }
+        }
+
+        /* Team Section */
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .team-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 3px solid var(--christmas-green);
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .team-card:hover {
+            transform: scale(1.02);
+        }
+
+        .team-avatar {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, var(--christmas-red) 0%, var(--christmas-green) 100%);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            border: 4px solid var(--gold);
+        }
+
+        .team-name {
+            font-size: 14px;
+            color: var(--gold);
+            margin-bottom: 5px;
+        }
+
+        .team-role {
+            font-size: 9px;
+            color: var(--christmas-red);
+            margin-bottom: 15px;
+        }
+
+        .team-desc {
+            font-size: 8px;
+            color: var(--snow-white);
+            line-height: 1.6;
+        }
+
+        /* FAQ Section */
+        .faq-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .faq-item {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid var(--christmas-green);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        .faq-question {
+            padding: 20px;
+            font-size: 10px;
+            color: var(--snow-white);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s;
+        }
+
+        .faq-question:hover {
+            background: rgba(196, 30, 58, 0.2);
+        }
+
+        .faq-toggle {
+            color: var(--christmas-red);
+            font-size: 16px;
+        }
+
+        .faq-answer {
+            padding: 0 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.3s;
+            font-size: 9px;
+            color: var(--ice-blue);
+            line-height: 1.8;
+        }
+
+        .faq-item.active .faq-answer {
+            padding: 0 20px 20px;
+            max-height: 500px;
+        }
+
+        .faq-item.active .faq-toggle {
+            transform: rotate(45deg);
+        }
+
+        /* Disclaimer */
+        .disclaimer {
+            background: rgba(139, 0, 0, 0.3);
+            border: 2px solid var(--christmas-red);
+            border-radius: 10px;
+            padding: 30px;
+            max-width: 900px;
+            margin: 40px auto;
+        }
+
+        .disclaimer-title {
+            font-size: 12px;
+            color: var(--christmas-red);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .disclaimer-text {
+            font-size: 8px;
+            color: var(--snow-white);
+            line-height: 1.8;
+        }
+
+        /* Footer */
+        footer {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 50px 20px 30px;
+            text-align: center;
+            border-top: 4px solid var(--christmas-red);
+        }
+
+        .footer-logo {
+            font-size: 18px;
+            color: var(--christmas-red);
+            margin-bottom: 20px;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--snow-white);
+            text-decoration: none;
+            font-size: 10px;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: var(--gold);
+        }
+
+        .footer-socials {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .footer-socials a {
+            width: 50px;
+            height: 50px;
+            background: var(--christmas-red);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-size: 20px;
+            transition: transform 0.3s;
+        }
+
+        .footer-socials a:hover {
+            transform: scale(1.1);
+        }
+
+        .footer-copy {
+            font-size: 8px;
+            color: #666;
+        }
+
+        /* Blizzard Mode Banner */
+        .blizzard-banner {
+            background: linear-gradient(90deg, var(--ice-blue) 0%, var(--christmas-green) 50%, var(--ice-blue) 100%);
+            padding: 15px;
+            text-align: center;
+            animation: blizzard-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes blizzard-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        .blizzard-text {
+            font-size: 10px;
+            color: var(--coal-black);
+        }
+
+        .blizzard-text span {
+            color: var(--christmas-red);
+        }
+
+        /* Live Stats */
+        .live-stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+            margin: 40px 0;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: clamp(20px, 4vw, 32px);
+            color: var(--gold);
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.3);
+        }
+
+        .stat-label {
+            font-size: 8px;
+            color: var(--snow-white);
+            margin-top: 5px;
+        }
+
+        /* Mobile Menu */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .nav-links, .nav-socials {
+                display: none;
+            }
+
+            nav.mobile-open .nav-links {
+                display: flex;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: rgba(0, 0, 0, 0.95);
+                padding: 20px;
+            }
+
+            nav.mobile-open .nav-socials {
+                display: flex;
+                position: absolute;
+                top: calc(100% + 200px);
+                left: 0;
+                right: 0;
+                background: rgba(0, 0, 0, 0.95);
+                padding: 20px;
+                justify-content: center;
+            }
+        }
+
+        /* Scroll animations */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease-out;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Live Section Responsive */
+        @media (max-width: 1024px) {
+            #live > div:first-of-type {
+                grid-template-columns: 1fr !important;
+            }
+            #live .token-games-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+        }
+        @media (max-width: 640px) {
+            #live .token-games-grid {
+                grid-template-columns: 1fr !important;
+            }
+            #live .token-stats {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Snowfall Effect -->
+    <div class="snowflakes" id="snowflakes"></div>
+
+    <!-- Blizzard Mode Banner (conditional) -->
+    <div class="blizzard-banner" id="blizzardBanner" style="display: none;">
+        <p class="blizzard-text">❄️ <span>BLIZZARD MODE ACTIVE!</span> ❄️ 2X PRESENTS SPAWNING IN-GAME! ❄️</p>
+    </div>
+
+    <!-- Navigation -->
+    <nav id="navbar">
+        <div class="nav-logo">🎅 SANTA'S FACTORY</div>
+        <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
+        <ul class="nav-links">
+            <li><a href="#live" style="color: #ff4444; animation: pulse 1s infinite;">🔴 LIVE</a></li>
+            <li><a href="#game">PLAY</a></li>
+            <li><a href="#about">ABOUT</a></li>
+            <li><a href="#tokenomics">TOKENOMICS</a></li>
+            <li><a href="#roadmap">ROADMAP</a></li>
+            <li><a href="#team">TEAM</a></li>
+            <li><a href="#faq">FAQ</a></li>
+        </ul>
+        <div class="nav-socials">
+            <a href="https://twitter.com/SantasFactory" target="_blank">TWITTER</a>
+            <a href="https://t.me/santasfactory" target="_blank">TELEGRAM</a>
+        </div>
+    </nav>
+
+    <!-- Icicle Border -->
+    <div class="icicle-border"></div>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <!-- Logo Image -->
+        <img src="/images/logo.png" alt="Santa's Factory" style="max-width: 400px; width: 80%; margin-bottom: 20px; filter: drop-shadow(4px 4px 8px rgba(0,0,0,0.5));">
+
+        <!-- Pixel Santa with hearts -->
+        <div style="position: relative; margin-bottom: 20px;">
+            <img src="/images/pixel-santa.png" alt="Pixel Santa" style="width: 100px; height: auto;">
+            <span style="position: absolute; top: -10px; right: -10px; font-size: 20px; animation: bounce 1s infinite;">❤️</span>
+            <span style="position: absolute; top: 10px; right: -25px; font-size: 16px; animation: bounce 1s infinite 0.2s;">❤️</span>
+        </div>
+
+        <h2 class="hero-subtitle">COLLECT $PRESENTS</h2>
+        <p class="hero-tagline">PLAY • COLLECT • HOLD • CHRISTMAS MAGIC ON SOLANA</p>
+
+        <!-- Countdown Timer -->
+        <div class="countdown-container">
+            <p class="countdown-label">⏰ TIME UNTIL CHRISTMAS ⏰</p>
+            <div class="countdown" id="countdown">
+                <div class="countdown-item">
+                    <div class="countdown-value" id="days">00</div>
+                    <div class="countdown-unit">DAYS</div>
+                </div>
+                <div class="countdown-item">
+                    <div class="countdown-value" id="hours">00</div>
+                    <div class="countdown-unit">HOURS</div>
+                </div>
+                <div class="countdown-item">
+                    <div class="countdown-value" id="minutes">00</div>
+                    <div class="countdown-unit">MINS</div>
+                </div>
+                <div class="countdown-item">
+                    <div class="countdown-value" id="seconds">00</div>
+                    <div class="countdown-unit">SECS</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="cta-buttons">
+            <a href="#game" class="btn btn-primary">🎮 PLAY NOW</a>
+            <a href="https://pump.fun/TOKEN_ADDRESS" target="_blank" class="btn btn-secondary">💰 BUY $PRESENTS</a>
+            <a href="https://t.me/santasfactory" target="_blank" class="btn btn-gold">🎁 JOIN COMMUNITY</a>
+        </div>
+
+        <!-- Live Stats -->
+        <div class="live-stats">
+            <div class="stat-item">
+                <div class="stat-value" id="totalPlays">0</div>
+                <div class="stat-label">TOTAL PLAYS</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="holders">0</div>
+                <div class="stat-label">HOLDERS</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="presentsCollected">0</div>
+                <div class="stat-label">$PRESENTS COLLECTED</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Token Info Bar -->
+    <div class="token-bar">
+        <div class="token-item">
+            <span class="token-label">TOKEN:</span>
+            <span class="token-value">$PRESENTS</span>
+        </div>
+        <div class="token-item">
+            <span class="token-label">CHAIN:</span>
+            <span class="token-value">SOLANA</span>
+        </div>
+        <div class="token-item">
+            <span class="token-label">CA:</span>
+            <span class="token-value" id="caDisplay">COMING SOON</span>
+            <button class="ca-copy" onclick="copyCA()">COPY</button>
+        </div>
+        <div class="token-item">
+            <span class="token-label">TAX:</span>
+            <span class="token-value">0%</span>
+        </div>
+    </div>
+
+    <!-- LIVE LAUNCH SECTION -->
+    <section id="live" style="background: linear-gradient(180deg, rgba(10,10,26,0.98) 0%, rgba(26,26,46,0.95) 100%); padding: 60px 20px;">
+        <h2 class="section-title">🔴 LIVE NOW 🔴</h2>
+        <p class="section-subtitle">WATCH DAKOTA PLAY • BUY $PRESENTS • WIN BIG</p>
+
+        <div style="max-width: 1200px; margin: 40px auto; display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+            <!-- Stream Embed -->
+            <div style="background: rgba(0,0,0,0.6); border: 4px solid #C41E3A; border-radius: 16px; overflow: hidden;">
+                <div style="background: linear-gradient(90deg, #C41E3A, #8B0000); padding: 12px 20px; display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 40px; height: 40px; background: #228B22; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid white;">🎅</div>
+                    <div>
+                        <div style="font-size: 12px; color: white;">Dakota's Workshop</div>
+                        <div style="font-size: 10px; color: rgba(255,255,255,0.7);">Streaming live</div>
+                    </div>
+                    <div style="margin-left: auto; display: flex; align-items: center; gap: 6px;">
+                        <span style="width: 8px; height: 8px; background: #ff0000; border-radius: 50%; animation: pulse 1s infinite;"></span>
+                        <span style="font-size: 10px; color: white;">LIVE</span>
+                    </div>
+                </div>
+                <div style="position: relative; padding-bottom: 56.25%; height: 0;">
+                    <iframe
+                        src="https://player.twitch.tv/?channel=dakota&parent=santas-factory.vercel.app&muted=true"
+                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
+                        allowfullscreen>
+                    </iframe>
+                </div>
+                <div style="background: #1a1a2e; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 10px; color: rgba(255,255,255,0.6);">Join to influence the games!</span>
+                    <a href="https://twitch.tv/dakota" target="_blank" style="font-size: 10px; color: #FFD700; text-decoration: none;">Open in Twitch →</a>
+                </div>
+            </div>
+
+            <!-- Token Launch Card -->
+            <div style="background: linear-gradient(135deg, #1a1a2e, #16213e); border: 4px solid #FFD700; border-radius: 16px; padding: 24px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        <div style="width: 60px; height: 60px; background: #C41E3A; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; border: 3px solid #FFD700;">🎁</div>
+                        <div>
+                            <div style="font-size: 16px; color: white;">$PRESENTS</div>
+                            <div style="font-size: 12px; color: #FFD700;">on pump.fun</div>
+                        </div>
+                    </div>
+                    <a href="https://pump.fun" target="_blank" style="background: #00d4aa; color: black; padding: 10px 16px; border-radius: 8px; font-size: 10px; text-decoration: none;">VIEW ON PUMP.FUN</a>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px;">
+                    <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 8px; color: rgba(255,255,255,0.6); margin-bottom: 4px;">MCAP</div>
+                        <div style="font-size: 12px; color: #228B22;">$--</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 8px; color: rgba(255,255,255,0.6); margin-bottom: 4px;">HOLDERS</div>
+                        <div style="font-size: 12px; color: white;">--</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 8px; color: rgba(255,255,255,0.6); margin-bottom: 4px;">24H VOL</div>
+                        <div style="font-size: 12px; color: white;">--</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 8px; color: rgba(255,255,255,0.6); margin-bottom: 4px;">STATUS</div>
+                        <div style="font-size: 12px; color: #FFD700;">BONDING</div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 24px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 8px;">
+                        <span style="color: rgba(255,255,255,0.6);">Bonding Curve</span>
+                        <span style="color: #FFD700;">--%</span>
+                    </div>
+                    <div style="height: 12px; background: rgba(255,255,255,0.1); border-radius: 6px; overflow: hidden;">
+                        <div style="height: 100%; width: 0%; background: linear-gradient(90deg, #C41E3A, #FFD700, #228B22); border-radius: 6px;"></div>
+                    </div>
+                </div>
+
+                <a href="https://pump.fun" target="_blank" style="display: block; background: linear-gradient(90deg, #C41E3A, #8B0000); color: white; text-align: center; padding: 16px; border-radius: 12px; font-size: 12px; text-decoration: none; border: none; cursor: pointer;">🎁 BUY $PRESENTS ON PUMP.FUN</a>
+            </div>
+        </div>
+
+        <!-- Token Games -->
+        <h3 style="text-align: center; font-size: 14px; color: #FFD700; margin: 40px 0 24px; text-shadow: 2px 2px 0 rgba(0,0,0,0.5);">💰 TOKEN-POWERED GAMES 💰</h3>
+        <div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;">
+            <!-- Runner Game -->
+            <div style="background: linear-gradient(135deg, #C41E3A, #8B0000); border-radius: 16px; padding: 20px; border: 3px solid #C41E3A; position: relative;">
+                <div style="position: absolute; top: -8px; right: -8px; background: #ff0000; padding: 4px 8px; border-radius: 12px; font-size: 8px; display: flex; align-items: center; gap: 4px;">
+                    <span style="width: 6px; height: 6px; background: white; border-radius: 50%; animation: pulse 1s infinite;"></span> LIVE
+                </div>
+                <div style="font-size: 40px; margin-bottom: 12px;">🎅</div>
+                <div style="font-size: 12px; color: white; margin-bottom: 8px;">Santa's Runner</div>
+                <div style="font-size: 9px; color: rgba(255,255,255,0.8); margin-bottom: 16px; line-height: 1.6;">Token holders vote on difficulty. Survive = win the pot!</div>
+                <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px; margin-bottom: 12px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 8px; margin-bottom: 4px;">
+                        <span style="color: rgba(255,255,255,0.6);">Current Pot</span>
+                        <span style="color: white;">-- $PRESENTS</span>
+                    </div>
+                </div>
+                <button style="width: 100%; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 10px; border-radius: 8px; font-size: 10px; cursor: pointer; font-family: inherit;">Join Game</button>
+            </div>
+
+            <!-- Coinflip -->
+            <div style="background: linear-gradient(135deg, #FFD700, #FFA500); border-radius: 16px; padding: 20px; border: 3px solid #FFD700;">
+                <div style="font-size: 40px; margin-bottom: 12px;">🪙</div>
+                <div style="font-size: 12px; color: #1a1a2e; margin-bottom: 8px;">Naughty or Nice</div>
+                <div style="font-size: 9px; color: rgba(0,0,0,0.7); margin-bottom: 16px; line-height: 1.6;">50/50 odds, double or nothing with your tokens.</div>
+                <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; margin-bottom: 12px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 8px; margin-bottom: 4px;">
+                        <span style="color: rgba(0,0,0,0.6);">Current Pot</span>
+                        <span style="color: #1a1a2e;">-- $PRESENTS</span>
+                    </div>
+                </div>
+                <button style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(0,0,0,0.3); color: #1a1a2e; padding: 10px; border-radius: 8px; font-size: 10px; cursor: pointer; font-family: inherit;">Coming Soon</button>
+            </div>
+
+            <!-- Wheel -->
+            <div style="background: linear-gradient(135deg, #228B22, #006400); border-radius: 16px; padding: 20px; border: 3px solid #228B22;">
+                <div style="font-size: 40px; margin-bottom: 12px;">🎁</div>
+                <div style="font-size: 12px; color: white; margin-bottom: 8px;">Gift Wheel</div>
+                <div style="font-size: 9px; color: rgba(255,255,255,0.8); margin-bottom: 16px; line-height: 1.6;">Spin for multipliers 0x-10x. Chat picks the spin!</div>
+                <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px; margin-bottom: 12px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 8px; margin-bottom: 4px;">
+                        <span style="color: rgba(255,255,255,0.6);">Next Round</span>
+                        <span style="color: white;">--:--</span>
+                    </div>
+                </div>
+                <button style="width: 100%; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 10px; border-radius: 8px; font-size: 10px; cursor: pointer; font-family: inherit;">Coming Soon</button>
+            </div>
+
+            <!-- Jackpot -->
+            <div style="background: linear-gradient(135deg, #9B59B6, #8E44AD); border-radius: 16px; padding: 20px; border: 3px solid #9B59B6;">
+                <div style="font-size: 40px; margin-bottom: 12px;">🧦</div>
+                <div style="font-size: 12px; color: white; margin-bottom: 8px;">Stocking Stuffer</div>
+                <div style="font-size: 9px; color: rgba(255,255,255,0.8); margin-bottom: 16px; line-height: 1.6;">Pool tokens together. Random winner takes all!</div>
+                <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px; margin-bottom: 12px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 8px; margin-bottom: 4px;">
+                        <span style="color: rgba(255,255,255,0.6);">Jackpot</span>
+                        <span style="color: white;">-- $PRESENTS</span>
+                    </div>
+                </div>
+                <button style="width: 100%; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 10px; border-radius: 8px; font-size: 10px; cursor: pointer; font-family: inherit;">Coming Soon</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Game Section -->
+    <section class="game-section" id="game">
+        <h2 class="section-title">🎮 PLAY THE GAME 🎮</h2>
+        <p class="section-subtitle">COLLECT $PRESENTS • AVOID $COAL • POST YOUR SCORE</p>
+
+        <div class="game-container">
+            <!-- Embed the game here -->
+            <iframe src="game.html" title="Santa's Factory Runner"></iframe>
+        </div>
+
+        <div class="game-instructions">
+            <div class="instruction-item">
+                <div class="instruction-icon">⌨️</div>
+                <p class="instruction-text">PRESS SPACE<br>OR TAP TO JUMP</p>
+            </div>
+            <div class="instruction-item">
+                <div class="instruction-icon">🎁</div>
+                <p class="instruction-text">COLLECT PRESENTS<br>FOR POINTS</p>
+            </div>
+            <div class="instruction-item">
+                <div class="instruction-icon">🪨</div>
+                <p class="instruction-text">AVOID COAL<br>OR GAME OVER</p>
+            </div>
+            <div class="instruction-item">
+                <div class="instruction-icon">🍪</div>
+                <p class="instruction-text">COOKIES = <br>SPEED BOOST</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- The Story Section -->
+    <section id="story" style="background: linear-gradient(180deg, rgba(20,20,40,0.95) 0%, rgba(30,30,60,0.9) 100%);">
+        <h2 class="section-title">📖 THE STORY 📖</h2>
+        <p class="section-subtitle">EVERY UNDERDOG HAS THEIR DAY</p>
+
+        <div style="max-width: 800px; margin: 0 auto; background: rgba(0,0,0,0.6); border: 3px solid var(--christmas-green); border-radius: 15px; padding: 40px; position: relative;">
+
+            <!-- Story content -->
+            <div style="text-align: left; line-height: 2.2;">
+                <p style="font-size: 11px; color: var(--snow-white); margin-bottom: 25px;">
+                    <span style="color: var(--gold); font-size: 14px;">Once upon a time...</span> there was an elf named <span style="color: var(--christmas-green);">Dakota</span>. He worked harder than anyone in the workshop. Stayed late. Built the best toys. Believed in the mission.
+                </p>
+
+                <p style="font-size: 11px; color: var(--snow-white); margin-bottom: 25px;">
+                    And then? <span style="color: var(--christmas-red);">They abandoned him.</span>
+                </p>
+
+                <p style="font-size: 11px; color: var(--snow-white); margin-bottom: 25px;">
+                    The elves he thought were his friends? <span style="color: var(--christmas-red);">Gone.</span> The community he helped build? <span style="color: var(--christmas-red);">Moved on without him.</span> One day you're family, the next you're crashing on a buddy's couch in Old Regalia wondering what the hell happened.
+                </p>
+
+                <p style="font-size: 11px; color: var(--snow-white); margin-bottom: 25px;">
+                    No calls. No support. Just silence and the cold reminder that loyalty means nothing when people find something shinier.
+                </p>
+
+                <p style="font-size: 11px; color: var(--snow-white); margin-bottom: 25px;">
+                    But then... <span style="color: var(--gold);">he found Solana.</span>
+                </p>
+
+                <p style="font-size: 11px; color: var(--snow-white); margin-bottom: 25px;">
+                    One night, doom-scrolling through crypto Twitter at 3am, Dakota had an idea. What if he could rebuild? Not for the people who left him behind. <span style="color: var(--christmas-green);">For the ones who never had a seat at the table in the first place.</span> A NEW Factory. One where everyone gets $PRESENTS. One where the community actually means something.
+                </p>
+
+                <p style="font-size: 11px; color: var(--snow-white); margin-bottom: 25px;">
+                    <span style="color: var(--gold); font-size: 12px;">This is his comeback.</span>
+                </p>
+
+                <p style="font-size: 11px; color: var(--snow-white); margin-bottom: 15px;">
+                    And if you've ever been left behind... <span style="color: var(--christmas-green);">this one's for you.</span>
+                </p>
+
+                <p style="font-size: 9px; color: var(--ice-blue); text-align: center; margin-top: 30px; font-style: italic;">
+                    "They forgot about me. That was their mistake." — Dakota
+                </p>
+            </div>
+
+            <!-- Decorative elf -->
+            <div style="position: absolute; bottom: -20px; right: 20px;">
+                <img src="/images/pixel-santa.png" alt="Dakota" style="width: 60px; height: auto; transform: scaleX(-1);">
+            </div>
+        </div>
+    </section>
+
+    <!-- About / How It Works -->
+    <section id="about">
+        <h2 class="section-title">🎄 HOW IT WORKS 🎄</h2>
+        <p class="section-subtitle">THREE SIMPLE STEPS TO CHRISTMAS GAINS</p>
+
+        <div class="how-it-works">
+            <div class="step-card fade-in">
+                <div class="step-number">01</div>
+                <h3 class="step-title">PLAY THE GAME</h3>
+                <p class="step-desc">No wallet needed! Just play our free browser game. Collect $PRESENTS, avoid $COAL, compete for the high score. It's actually fun.</p>
+            </div>
+            <div class="step-card fade-in">
+                <div class="step-number">02</div>
+                <h3 class="step-title">BUY $PRESENTS</h3>
+                <p class="step-desc">Get $PRESENTS on Solana. Hold through Christmas for maximum rewards. The longer you hold, the more Santa notices.</p>
+            </div>
+            <div class="step-card fade-in">
+                <div class="step-number">03</div>
+                <h3 class="step-title">JOIN THE WORKSHOP</h3>
+                <p class="step-desc">Share your scores. Compete in contests. Win prizes. Be part of the most festive community on Solana.</p>
+            </div>
+        </div>
+
+        <!-- Characters Image -->
+        <div style="text-align: center; margin: 40px 0;">
+            <img src="/images/characters.png" alt="Christmas Characters" style="max-width: 300px; width: 60%; filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));">
+        </div>
+
+        <!-- Naughty/Nice Lists -->
+        <div class="naughty-nice">
+            <div class="list-card nice-card fade-in">
+                <h3 class="list-title">✅ NICE LIST</h3>
+                <ul class="list-items">
+                    <li>✓ Play the game daily</li>
+                    <li>✓ Hold $PRESENTS through Christmas</li>
+                    <li>✓ Share your scores on Twitter</li>
+                    <li>✓ Invite friends to the workshop</li>
+                    <li>✓ Participate in community events</li>
+                    <li>✓ Spread Christmas cheer</li>
+                </ul>
+                <p style="font-size: 8px; color: var(--christmas-green); margin-top: 15px;">
+                    REWARD: Bonus airdrops, exclusive NFTs, Santa's favor
+                </p>
+            </div>
+            <div class="list-card naughty-card fade-in">
+                <h3 class="list-title">❌ NAUGHTY LIST</h3>
+                <ul class="list-items">
+                    <li>✗ Dump immediately after buying</li>
+                    <li>✗ Spread FUD in the community</li>
+                    <li>✗ Cheat on the leaderboard</li>
+                    <li>✗ Rug other community members</li>
+                    <li>✗ Be a Grinch</li>
+                    <li>✗ Not have fun</li>
+                </ul>
+                <p style="font-size: 8px; color: var(--christmas-red); margin-top: 15px;">
+                    PENALTY: $COAL in your wallet, Santa's disappointment
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Leaderboard Section -->
+    <section id="leaderboard">
+        <h2 class="section-title">🏆 LEADERBOARD 🏆</h2>
+        <p class="section-subtitle">TOP SCORES WIN $PRESENTS</p>
+
+        <div class="leaderboard fade-in">
+            <div class="leaderboard-header">
+                TOP ELVES THIS CHRISTMAS
+            </div>
+            <div class="leaderboard-row">
+                <span class="rank">🥇</span>
+                <span class="wallet">Santa.sol</span>
+                <span class="score">999,999</span>
+            </div>
+            <div class="leaderboard-row">
+                <span class="rank">🥈</span>
+                <span class="wallet">Rud0lph.sol</span>
+                <span class="score">888,888</span>
+            </div>
+            <div class="leaderboard-row">
+                <span class="rank">🥉</span>
+                <span class="wallet">E1fM@x.sol</span>
+                <span class="score">777,777</span>
+            </div>
+            <div class="leaderboard-row">
+                <span class="rank">4</span>
+                <span class="wallet">Frosty.sol</span>
+                <span class="score">666,666</span>
+            </div>
+            <div class="leaderboard-row">
+                <span class="rank">5</span>
+                <span class="wallet">Snowfl@ke.sol</span>
+                <span class="score">555,555</span>
+            </div>
+        </div>
+
+        <p style="text-align: center; font-size: 8px; color: var(--ice-blue); margin-top: 20px;">
+            Leaderboard updates every hour • Top 3 win prizes on Christmas Day
+        </p>
+    </section>
+
+    <!-- Tokenomics -->
+    <section id="tokenomics">
+        <h2 class="section-title">💰 TOKENOMICS 💰</h2>
+        <p class="section-subtitle">SIMPLE. FAIR. FESTIVE.</p>
+
+        <!-- Santa with Gift decoration -->
+        <div style="text-align: center; margin-bottom: 30px;">
+            <img src="/images/santa-with-gift.png" alt="Santa with Gift" style="width: 120px; height: auto; filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));">
+        </div>
+
+        <div class="tokenomics-grid">
+            <div class="token-card fade-in">
+                <div class="token-card-icon">🎁</div>
+                <h3 class="token-card-title">$PRESENTS</h3>
+                <p class="token-card-desc">The main token. Collect in-game, buy on DEX, hold for rewards. 1 billion supply.</p>
+            </div>
+            <div class="token-card fade-in">
+                <div class="token-card-icon">🪨</div>
+                <h3 class="token-card-title">$COAL</h3>
+                <p class="token-card-desc">The penalty token. Given to naughty list members. Can be burned or... embraced.</p>
+            </div>
+            <div class="token-card fade-in">
+                <div class="token-card-icon">🍪</div>
+                <h3 class="token-card-title">$COOKIES</h3>
+                <p class="token-card-desc">Utility token for in-game boosts and special features. Limited supply.</p>
+            </div>
+            <div class="token-card fade-in">
+                <div class="token-card-icon">🧦</div>
+                <h3 class="token-card-title">$STUFFERS</h3>
+                <p class="token-card-desc">NFT rewards for top performers. Exclusive art, tradeable, collectible.</p>
+            </div>
+        </div>
+
+        <div style="background: rgba(0,0,0,0.5); border: 2px solid var(--gold); border-radius: 10px; padding: 25px; margin-top: 40px; max-width: 600px; margin-left: auto; margin-right: auto;">
+            <h4 style="color: var(--gold); font-size: 12px; margin-bottom: 15px; text-align: center;">$PRESENTS DISTRIBUTION</h4>
+            <div style="font-size: 9px; line-height: 2;">
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding: 8px 0;">
+                    <span>🎮 Game Rewards</span>
+                    <span style="color: var(--christmas-green);">40%</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding: 8px 0;">
+                    <span>💧 Liquidity Pool</span>
+                    <span style="color: var(--christmas-green);">30%</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding: 8px 0;">
+                    <span>📢 Marketing & Contests</span>
+                    <span style="color: var(--christmas-green);">15%</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding: 8px 0;">
+                    <span>👥 Team (Vested 6mo)</span>
+                    <span style="color: var(--christmas-green);">10%</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                    <span>🎁 Airdrops</span>
+                    <span style="color: var(--christmas-green);">5%</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Roadmap -->
+    <section id="roadmap">
+        <h2 class="section-title">🗓️ ROADMAP 🗓️</h2>
+        <p class="section-subtitle">THE PATH TO CHRISTMAS</p>
+
+        <div class="timeline">
+            <div class="timeline-item fade-in">
+                <div class="timeline-content">
+                    <div class="timeline-date">DEC 22</div>
+                    <h3 class="timeline-title">🔧 WORKSHOP OPENS</h3>
+                    <p class="timeline-desc">Token launch on pump.fun. Game goes live. Community channels open. The elves start working.</p>
+                </div>
+                <div class="timeline-dot"></div>
+            </div>
+            <div class="timeline-item fade-in">
+                <div class="timeline-content">
+                    <div class="timeline-date">DEC 23</div>
+                    <h3 class="timeline-title">🎮 PUBLIC LAUNCH</h3>
+                    <p class="timeline-desc">Official launch announcement. Screenshot contest begins. CT raids deployed. Influencer posts go live.</p>
+                </div>
+                <div class="timeline-dot"></div>
+            </div>
+            <div class="timeline-item fade-in">
+                <div class="timeline-content">
+                    <div class="timeline-date">DEC 24</div>
+                    <h3 class="timeline-title">❄️ BLIZZARD MODE</h3>
+                    <p class="timeline-desc">24-hour special event with 2X presents! Final leaderboard push. Christmas Eve AMA. Maximum festivity.</p>
+                </div>
+                <div class="timeline-dot"></div>
+            </div>
+            <div class="timeline-item fade-in">
+                <div class="timeline-content">
+                    <div class="timeline-date">DEC 25</div>
+                    <h3 class="timeline-title">🎄 CHRISTMAS DAY</h3>
+                    <p class="timeline-desc">Winners announced! Prizes distributed. Special airdrops for Nice List members. Santa's final gift revealed.</p>
+                </div>
+                <div class="timeline-dot"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section id="team">
+        <h2 class="section-title">👥 THE WORKSHOP CREW 👥</h2>
+        <p class="section-subtitle">MEET THE ELVES BEHIND THE MAGIC</p>
+
+        <div class="team-grid">
+            <div class="team-card fade-in">
+                <div class="team-avatar">🎅</div>
+                <h3 class="team-name">CHAMPI</h3>
+                <p class="team-role">HEAD ELF / TECH LEAD</p>
+                <p class="team-desc">20 years building. Physics background. Created the $RETARDIO that hit $200M. Your favorite dev's favorite dev.</p>
+            </div>
+            <div class="team-card fade-in">
+                <div class="team-avatar">🧝</div>
+                <h3 class="team-name">DAKOTA</h3>
+                <p class="team-role">CHIEF ELF OFFICER</p>
+                <p class="team-desc">Marketing wizard. Content creator. Part of the ATTN.MONEY ecosystem. The face (and pointy ears) of Santa's Factory.</p>
+                <a href="https://attn.money" target="_blank" style="font-size: 8px; color: var(--gold); margin-top: 10px; display: inline-block;">🔗 ATTN.MONEY</a>
+            </div>
+            <div class="team-card fade-in">
+                <div class="team-avatar">⭐</div>
+                <h3 class="team-name">FELICITY</h3>
+                <p class="team-role">COMMUNITY MANAGER</p>
+                <p class="team-desc">Keeps the workshop running smooth. Answers your questions. Makes sure everyone stays on the Nice List.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq">
+        <h2 class="section-title">❓ FAQ ❓</h2>
+        <p class="section-subtitle">QUESTIONS? SANTA HAS ANSWERS.</p>
+
+        <div class="faq-container">
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+                    <span>Is this a rug?</span>
+                    <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                    Fair question! Contract is verified on-chain. Team allocation is 10%, vested over 6 months. We're building in public. That said, this IS a memecoin – only invest what you can afford to lose. DYOR!
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+                    <span>Do I need a wallet to play the game?</span>
+                    <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                    Nope! The game is 100% free and playable in your browser. No wallet, no sign-up, just vibes. You only need a wallet if you want to buy $PRESENTS or claim prizes.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+                    <span>How do I win prizes?</span>
+                    <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                    Top 3 leaderboard scores win $PRESENTS prizes on Christmas Day. We also do random draws for participants who post their scores on Twitter with #SantasFactory. Check our Twitter for current contests!
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+                    <span>What is $COAL?</span>
+                    <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                    $COAL is our penalty token for "naughty" behavior – think of it as Santa's way of saying "nice try." In-game, hitting coal ends your run. On-chain, it's airdropped to wallets that dump immediately. Embrace the meme.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+                    <span>What happens after Christmas?</span>
+                    <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                    The workshop doesn't close on December 26th! We have plans for expanded gameplay, staking mechanics, and seasonal events throughout the year. The Christmas launch is just the beginning.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+                    <span>Where can I buy $PRESENTS?</span>
+                    <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                    $PRESENTS is available on pump.fun during the bonding curve phase, then graduates to Raydium for full DEX trading. Links are in our Telegram and at the top of this page.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Merry Christmas Banner -->
+    <section style="padding: 60px 20px; text-align: center;">
+        <img src="/images/merry-christmas.png" alt="Merry Christmas" style="max-width: 800px; width: 90%; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.4);">
+    </section>
+
+    <!-- ATTN.MONEY Ecosystem Section -->
+    <section id="ecosystem" style="background: linear-gradient(180deg, rgba(100, 100, 255, 0.1) 0%, transparent 100%);">
+        <h2 class="section-title">🔮 PART OF ATTN.MONEY 🔮</h2>
+        <p class="section-subtitle">ATTENTION IS THE NEW CURRENCY</p>
+
+        <div style="max-width: 800px; margin: 0 auto; background: rgba(0,0,0,0.6); border: 2px solid #7c3aed; border-radius: 10px; padding: 30px;">
+            <p style="font-size: 10px; color: #a78bfa; text-align: center; margin-bottom: 20px; font-style: italic;">
+                "Attention and hype exist in an inverse relationship. When everyone's looking, the alpha is gone."
+            </p>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px;">
+                <div style="text-align: center; padding: 15px;">
+                    <div style="font-size: 24px; margin-bottom: 10px;">🤖</div>
+                    <h4 style="font-size: 10px; color: var(--gold); margin-bottom: 5px;">SWARM AGENTS</h4>
+                    <p style="font-size: 8px; color: #ccc;">GIZMO, Perceptron, Foolio, Azoka, Sloppio, Clippio</p>
+                </div>
+                <div style="text-align: center; padding: 15px;">
+                    <div style="font-size: 24px; margin-bottom: 10px;">📊</div>
+                    <h4 style="font-size: 10px; color: var(--gold); margin-bottom: 5px;">TRADING INFRA</h4>
+                    <p style="font-size: 8px; color: #ccc;">ATTN DEX, Perceptron Bot, Analytics Suite</p>
+                </div>
+                <div style="text-align: center; padding: 15px;">
+                    <div style="font-size: 24px; margin-bottom: 10px;">🏰</div>
+                    <h4 style="font-size: 10px; color: var(--gold); margin-bottom: 5px;">KINGDOMS OF REGALIA</h4>
+                    <p style="font-size: 8px; color: #ccc;">Regalia • Old Regalia • Penumbria</p>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 25px;">
+                <a href="https://attn.money" target="_blank" class="btn btn-primary" style="background: linear-gradient(180deg, #7c3aed 0%, #5b21b6 100%); border-color: #5b21b6;">EXPLORE ATTN.MONEY</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Disclaimer -->
+    <div class="disclaimer fade-in">
+        <h4 class="disclaimer-title">⚠️ IMPORTANT DISCLAIMER</h4>
+        <p class="disclaimer-text">
+            Santa's Factory is an experimental project combining gaming and blockchain technology. $PRESENTS is a memecoin with no intrinsic value and should be treated as entertainment, not an investment. The value of $PRESENTS can go to zero. Do not invest more than you can afford to lose completely. This is not financial advice. Smart contracts have not been formally audited. By participating, you acknowledge and accept all associated risks. Past performance of other projects by team members does not guarantee future results. Always DYOR (Do Your Own Research). If you are not an accredited investor, please consult a financial advisor before participating in any cryptocurrency activities.
+        </p>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-logo">🎅 SANTA'S FACTORY 🎄</div>
+        <div class="footer-links">
+            <a href="#game">Play Game</a>
+            <a href="#about">About</a>
+            <a href="#tokenomics">Tokenomics</a>
+            <a href="#roadmap">Roadmap</a>
+            <a href="#team">Team</a>
+            <a href="#faq">FAQ</a>
+        </div>
+        <div class="footer-socials">
+            <a href="https://twitter.com/SantasFactory" target="_blank" title="Twitter">𝕏</a>
+            <a href="https://t.me/santasfactory" target="_blank" title="Telegram">✈</a>
+            <a href="https://dexscreener.com/solana/TOKEN" target="_blank" title="DexScreener">📊</a>
+        </div>
+        <p class="footer-copy">
+            © 2024 Santa's Factory | Built with ❤️ by Elves on Solana<br>
+            Part of the <a href="https://attn.money" target="_blank" style="color: #a78bfa;">ATTN.MONEY</a> Ecosystem | 1337 Singularity Systems<br>
+            Not affiliated with the actual North Pole (we checked)
+        </p>
+    </footer>
+
+    <script>
+        // Snowfall Effect
+        function createSnowflakes() {
+            const container = document.getElementById('snowflakes');
+            const snowflakeChars = ['❄', '❅', '❆', '✦', '•'];
+            
+            for (let i = 0; i < 50; i++) {
+                const snowflake = document.createElement('div');
+                snowflake.className = 'snowflake';
+                snowflake.innerHTML = snowflakeChars[Math.floor(Math.random() * snowflakeChars.length)];
+                snowflake.style.left = Math.random() * 100 + '%';
+                snowflake.style.animationDuration = (Math.random() * 10 + 5) + 's';
+                snowflake.style.animationDelay = Math.random() * 10 + 's';
+                snowflake.style.fontSize = (Math.random() * 10 + 8) + 'px';
+                snowflake.style.opacity = Math.random() * 0.6 + 0.4;
+                container.appendChild(snowflake);
+            }
+        }
+        createSnowflakes();
+
+        // Countdown Timer
+        function updateCountdown() {
+            const christmas = new Date('December 25, 2024 00:00:00').getTime();
+            const now = new Date().getTime();
+            const distance = christmas - now;
+
+            if (distance < 0) {
+                document.getElementById('countdown').innerHTML = '<div style="font-size: 14px; color: var(--gold);">🎄 MERRY CHRISTMAS! 🎄</div>';
+                return;
+            }
+
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            document.getElementById('days').textContent = String(days).padStart(2, '0');
+            document.getElementById('hours').textContent = String(hours).padStart(2, '0');
+            document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
+            document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
+
+            // Show Blizzard banner on Dec 24
+            const today = new Date();
+            if (today.getMonth() === 11 && today.getDate() === 24) {
+                document.getElementById('blizzardBanner').style.display = 'block';
+            }
+        }
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
+
+        // Animate stats (fake data for demo - replace with real API calls)
+        function animateStats() {
+            const stats = {
+                totalPlays: 12847,
+                holders: 1523,
+                presentsCollected: 8947523
+            };
+
+            function animateValue(id, end) {
+                let current = 0;
+                const increment = end / 100;
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= end) {
+                        current = end;
+                        clearInterval(timer);
+                    }
+                    document.getElementById(id).textContent = Math.floor(current).toLocaleString();
+                }, 20);
+            }
+
+            animateValue('totalPlays', stats.totalPlays);
+            animateValue('holders', stats.holders);
+            animateValue('presentsCollected', stats.presentsCollected);
+        }
+        setTimeout(animateStats, 500);
+
+        // Copy CA
+        function copyCA() {
+            const ca = document.getElementById('caDisplay').textContent;
+            if (ca === 'COMING SOON') {
+                alert('Contract address coming soon! Join our Telegram for updates.');
+                return;
+            }
+            navigator.clipboard.writeText(ca);
+            alert('Contract address copied!');
+        }
+
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            document.getElementById('navbar').classList.toggle('mobile-open');
+        }
+
+        // FAQ toggle
+        function toggleFaq(element) {
+            const item = element.parentElement;
+            item.classList.toggle('active');
+        }
+
+        // Scroll animations
+        function handleScrollAnimations() {
+            const elements = document.querySelectorAll('.fade-in');
+            elements.forEach(el => {
+                const rect = el.getBoundingClientRect();
+                if (rect.top < window.innerHeight - 100) {
+                    el.classList.add('visible');
+                }
+            });
+        }
+        window.addEventListener('scroll', handleScrollAnimations);
+        handleScrollAnimations();
+
+        // Smooth scroll for nav links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+                // Close mobile menu if open
+                document.getElementById('navbar').classList.remove('mobile-open');
+            });
+        });
+
+        // Update CA when available (call this function when you have the CA)
+        function setContractAddress(ca) {
+            document.getElementById('caDisplay').textContent = ca;
+            // Update all buy links
+            document.querySelectorAll('a[href*="pump.fun"]').forEach(link => {
+                link.href = `https://pump.fun/${ca}`;
+            });
+        }
+        
+        // Example: setContractAddress('YourTokenAddressHere');
+    </script>
+</body>
+</html>
